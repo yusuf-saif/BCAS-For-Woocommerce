@@ -1,0 +1,532 @@
+/* ==========================================================================
+   BCAS to WhatsApp — Frontend CSS
+   Mobile-first, responsive. Tested from 320px up.
+   ========================================================================== */
+
+/* ── Custom properties ──────────────────────────────────────────────────── */
+:root {
+	--bcasw-green:       #25D366;
+	--bcasw-green-dark:  #1da851;
+	--bcasw-green-light: #e8f9f0;
+	--bcasw-surface:     #ffffff;
+	--bcasw-surface-alt: #f8f9fa;
+	--bcasw-border:      #e8e8e8;
+	--bcasw-text:        #1a1a1a;
+	--bcasw-muted:       #6b7280;
+	--bcasw-accent:      #0066ff;
+	--bcasw-radius:      14px;
+	--bcasw-radius-sm:   8px;
+	--bcasw-shadow:      0 2px 16px rgba(0, 0, 0, 0.08);
+	--bcasw-shadow-lg:   0 16px 60px rgba(0, 0, 0, 0.28);
+	--bcasw-transition:  0.18s ease;
+}
+
+/* ── Reset within plugin scope ──────────────────────────────────────────── */
+.bcasw-box *,
+.bcasw-overlay * {
+	box-sizing: border-box;
+}
+
+/* =========================================================================
+   INLINE BLOCK
+   ========================================================================= */
+
+.bcasw-box {
+	margin: 28px 0;
+	padding: 28px;
+	background: var(--bcasw-surface);
+	border: 1.5px solid var(--bcasw-border);
+	border-radius: var(--bcasw-radius);
+	box-shadow: var(--bcasw-shadow);
+}
+
+.bcasw-box__title {
+	margin: 0 0 8px;
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: var(--bcasw-text);
+	line-height: 1.3;
+}
+
+.bcasw-box__intro {
+	margin: 0 0 24px;
+	color: var(--bcasw-muted);
+	font-size: 0.95rem;
+	line-height: 1.6;
+}
+
+/* ── Detail grid ─────────────────────────────────────────────────────────── */
+
+.bcasw-details-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.bcasw-detail-item {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 16px;
+	background: var(--bcasw-surface-alt);
+	border: 1px solid var(--bcasw-border);
+	border-radius: var(--bcasw-radius-sm);
+	transition: border-color var(--bcasw-transition);
+}
+
+.bcasw-detail-item:hover {
+	border-color: #c4c4c4;
+}
+
+.bcasw-detail-label {
+	font-size: 0.72rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--bcasw-muted);
+}
+
+.bcasw-detail-value {
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--bcasw-text);
+	word-break: break-all;
+}
+
+/* ── Copy button ─────────────────────────────────────────────────────────── */
+
+.bcasw-copy-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	margin-top: 6px;
+	padding: 5px 12px;
+	font-size: 0.78rem;
+	font-weight: 600;
+	color: var(--bcasw-muted);
+	background: var(--bcasw-surface);
+	border: 1px solid var(--bcasw-border);
+	border-radius: 6px;
+	cursor: pointer;
+	transition:
+		background var(--bcasw-transition),
+		color var(--bcasw-transition),
+		border-color var(--bcasw-transition);
+	line-height: 1;
+	align-self: flex-start;
+}
+
+.bcasw-copy-btn:hover {
+	background: var(--bcasw-text);
+	color: #fff;
+	border-color: var(--bcasw-text);
+}
+
+.bcasw-copy-btn--sm {
+	padding: 4px 10px;
+	font-size: 0.75rem;
+	margin-top: 0;
+}
+
+.bcasw-copy-btn.bcasw-copy-btn--success {
+	background: var(--bcasw-green);
+	color: #fff;
+	border-color: var(--bcasw-green);
+}
+
+/* ── Reference note ──────────────────────────────────────────────────────── */
+
+.bcasw-reference-note {
+	margin: 0 0 20px;
+	font-size: 0.88rem;
+	color: var(--bcasw-muted);
+}
+
+/* ── Actions ─────────────────────────────────────────────────────────────── */
+
+.bcasw-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+/* ── Shared button ───────────────────────────────────────────────────────── */
+
+.bcasw-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 9px;
+	padding: 14px 24px;
+	font-size: 1rem;
+	font-weight: 700;
+	border-radius: var(--bcasw-radius-sm);
+	border: 2px solid transparent;
+	text-decoration: none;
+	cursor: pointer;
+	transition:
+		transform var(--bcasw-transition),
+		box-shadow var(--bcasw-transition),
+		background var(--bcasw-transition),
+		color var(--bcasw-transition);
+	min-height: 52px;            /* thumb-friendly */
+	line-height: 1.2;
+}
+
+.bcasw-btn:active {
+	transform: scale(0.97);
+}
+
+/* WhatsApp CTA */
+.bcasw-btn--wa {
+	background: var(--bcasw-green);
+	color: #fff;
+	box-shadow: 0 4px 18px rgba(37, 211, 102, 0.35);
+}
+
+.bcasw-btn--wa:hover {
+	background: var(--bcasw-green-dark);
+	color: #fff;
+	box-shadow: 0 6px 24px rgba(37, 211, 102, 0.50);
+	text-decoration: none;
+}
+
+.bcasw-btn--wa svg {
+	flex-shrink: 0;
+}
+
+.bcasw-btn--full {
+	width: 100%;
+}
+
+/* Light / secondary */
+.bcasw-btn--light {
+	background: var(--bcasw-surface-alt);
+	color: var(--bcasw-text);
+	border-color: var(--bcasw-border);
+}
+
+.bcasw-btn--light:hover {
+	background: #ececec;
+}
+
+/* =========================================================================
+   BANK ACCOUNT SELECTOR
+   ========================================================================= */
+
+.bcasw-bank-selector {
+	margin-bottom: 24px;
+}
+
+.bcasw-selector-heading {
+	font-size: 1.05rem;
+	font-weight: 700;
+	margin: 0 0 6px;
+	color: var(--bcasw-text);
+}
+
+.bcasw-selector-sub {
+	margin: 0 0 14px;
+	color: var(--bcasw-muted);
+	font-size: 0.9rem;
+}
+
+.bcasw-selector-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.bcasw-bank-card {
+	flex: 1 1 160px;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	padding: 14px 16px;
+	background: var(--bcasw-surface-alt);
+	border: 2px solid var(--bcasw-border);
+	border-radius: var(--bcasw-radius-sm);
+	cursor: pointer;
+	text-align: left;
+	transition:
+		border-color var(--bcasw-transition),
+		background var(--bcasw-transition),
+		box-shadow var(--bcasw-transition);
+}
+
+.bcasw-bank-card:hover {
+	border-color: var(--bcasw-green);
+	background: var(--bcasw-green-light);
+}
+
+.bcasw-bank-card--active {
+	border-color: var(--bcasw-green);
+	background: var(--bcasw-green-light);
+	box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.2);
+}
+
+.bcasw-card-label {
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: var(--bcasw-text);
+}
+
+.bcasw-card-bank {
+	font-size: 0.8rem;
+	color: var(--bcasw-muted);
+}
+
+.bcasw-card-acct {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--bcasw-text);
+	letter-spacing: 0.04em;
+}
+
+/* =========================================================================
+   POPUP / OVERLAY
+   ========================================================================= */
+
+.bcasw-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.68);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 999999;
+	padding: 16px;
+	animation: bcasw-fade-in 0.2s ease;
+}
+
+@keyframes bcasw-fade-in {
+	from { opacity: 0; }
+	to   { opacity: 1; }
+}
+
+.bcasw-popup {
+	background: var(--bcasw-surface);
+	border-radius: var(--bcasw-radius);
+	padding: 32px 28px;
+	max-width: 520px;
+	width: 100%;
+	max-height: 90vh;
+	overflow-y: auto;
+	position: relative;
+	box-shadow: var(--bcasw-shadow-lg);
+	animation: bcasw-slide-up 0.22s ease;
+}
+
+@keyframes bcasw-slide-up {
+	from { opacity: 0; transform: translateY(20px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Close button ────────────────────────────────────────────────────────── */
+
+.bcasw-popup__close {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--bcasw-surface-alt);
+	border: 1px solid var(--bcasw-border);
+	border-radius: 50%;
+	cursor: pointer;
+	color: var(--bcasw-muted);
+	transition: background var(--bcasw-transition), color var(--bcasw-transition);
+}
+
+.bcasw-popup__close:hover {
+	background: #f0f0f0;
+	color: var(--bcasw-text);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.bcasw-popup__header {
+	text-align: center;
+	margin-bottom: 20px;
+	padding-right: 30px;   /* avoid overlap with close btn */
+}
+
+.bcasw-popup__icon {
+	font-size: 2.2rem;
+	margin-bottom: 10px;
+}
+
+.bcasw-popup__title {
+	margin: 0 0 8px;
+	font-size: 1.3rem;
+	font-weight: 800;
+	color: var(--bcasw-text);
+	line-height: 1.25;
+}
+
+.bcasw-popup__subtitle {
+	margin: 0;
+	color: var(--bcasw-muted);
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+
+/* ── Order summary strip ─────────────────────────────────────────────────── */
+
+.bcasw-popup__summary {
+	display: flex;
+	gap: 1px;
+	background: var(--bcasw-border);
+	border: 1px solid var(--bcasw-border);
+	border-radius: var(--bcasw-radius-sm);
+	overflow: hidden;
+	margin-bottom: 16px;
+}
+
+.bcasw-popup__summary-item {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 12px 16px;
+	background: var(--bcasw-surface-alt);
+	font-size: 0.82rem;
+	color: var(--bcasw-muted);
+}
+
+.bcasw-popup__summary-item strong {
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--bcasw-text);
+}
+
+.bcasw-popup__summary-item--total {
+	border-left: 1px solid var(--bcasw-border);
+}
+
+/* ── Bank details panel ──────────────────────────────────────────────────── */
+
+.bcasw-popup__bank {
+	background: var(--bcasw-surface-alt);
+	border: 1px solid var(--bcasw-border);
+	border-radius: var(--bcasw-radius-sm);
+	padding: 14px 16px;
+	margin-bottom: 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.bcasw-popup__bank-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	font-size: 0.88rem;
+}
+
+.bcasw-popup__bank-row span {
+	color: var(--bcasw-muted);
+	flex-shrink: 0;
+	padding-top: 2px;
+}
+
+.bcasw-popup__bank-row strong {
+	font-weight: 700;
+	color: var(--bcasw-text);
+	text-align: right;
+	word-break: break-all;
+}
+
+.bcasw-popup__bank-copy-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+/* ── Reference note ──────────────────────────────────────────────────────── */
+
+.bcasw-popup__reference {
+	font-size: 0.83rem;
+	color: var(--bcasw-muted);
+	text-align: center;
+	margin: 0 0 18px;
+}
+
+/* ── Popup actions ───────────────────────────────────────────────────────── */
+
+.bcasw-popup__actions {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.bcasw-popup__dismiss {
+	background: none;
+	border: none;
+	color: var(--bcasw-muted);
+	font-size: 0.85rem;
+	cursor: pointer;
+	text-align: center;
+	padding: 10px;
+	min-height: 44px;
+	transition: color var(--bcasw-transition);
+}
+
+.bcasw-popup__dismiss:hover {
+	color: var(--bcasw-text);
+}
+
+/* =========================================================================
+   RESPONSIVE OVERRIDES
+   ========================================================================= */
+
+@media (max-width: 480px) {
+	.bcasw-box {
+		padding: 20px 16px;
+	}
+
+	.bcasw-details-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.bcasw-popup {
+		padding: 24px 18px 20px;
+	}
+
+	.bcasw-popup__summary {
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.bcasw-popup__summary-item--total {
+		border-left: none;
+		border-top: 1px solid var(--bcasw-border);
+	}
+
+	.bcasw-popup__bank-row {
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.bcasw-popup__bank-row strong {
+		text-align: left;
+	}
+
+	.bcasw-btn {
+		width: 100%;
+	}
+
+	.bcasw-actions {
+		flex-direction: column;
+	}
+
+	.bcasw-bank-card {
+		flex: 1 1 100%;
+	}
+}

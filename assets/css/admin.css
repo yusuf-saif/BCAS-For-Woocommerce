@@ -1,0 +1,468 @@
+/* ==========================================================================
+   BCAS to WhatsApp — Admin Settings CSS
+   ========================================================================== */
+
+:root {
+	--ba-green:      #25D366;
+	--ba-green-bg:   #e8f9f0;
+	--ba-border:     #dde1e7;
+	--ba-surface:    #ffffff;
+	--ba-surface-2:  #f6f7f9;
+	--ba-text:       #1d2327;
+	--ba-muted:      #6b7280;
+	--ba-radius:     10px;
+	--ba-radius-sm:  6px;
+	--ba-blue:       #2271b1;
+}
+
+/* ── Page wrapper ────────────────────────────────────────────────────────── */
+
+.bcasw-settings-wrap {
+	max-width: 860px;
+	margin: 20px 20px 40px 0;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.bcasw-settings-header {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin-bottom: 24px;
+}
+
+.bcasw-settings-header h1 {
+	margin: 0;
+	font-size: 1.6rem;
+	font-weight: 800;
+	color: var(--ba-text);
+}
+
+.bcasw-settings-badge {
+	display: inline-block;
+	padding: 3px 10px;
+	background: var(--ba-green-bg);
+	color: var(--ba-green);
+	font-size: 0.72rem;
+	font-weight: 700;
+	border-radius: 20px;
+	letter-spacing: 0.04em;
+	border: 1px solid rgba(37,211,102,0.3);
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+
+.bcasw-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	border-bottom: 2px solid var(--ba-border);
+	margin-bottom: 28px;
+}
+
+.bcasw-tab-btn {
+	padding: 10px 18px;
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--ba-muted);
+	background: none;
+	border: none;
+	border-bottom: 3px solid transparent;
+	cursor: pointer;
+	margin-bottom: -2px;
+	border-radius: var(--ba-radius-sm) var(--ba-radius-sm) 0 0;
+	transition: color 0.15s, border-color 0.15s, background 0.15s;
+	white-space: nowrap;
+}
+
+.bcasw-tab-btn:hover {
+	color: var(--ba-text);
+	background: var(--ba-surface-2);
+}
+
+.bcasw-tab-btn.is-active {
+	color: var(--ba-blue);
+	border-bottom-color: var(--ba-blue);
+	background: var(--ba-surface-2);
+}
+
+/* ── Tab panels ──────────────────────────────────────────────────────────── */
+
+.bcasw-tab-panel {
+	display: none;
+}
+
+.bcasw-tab-panel.is-active {
+	display: block;
+}
+
+/* ── Section cards ───────────────────────────────────────────────────────── */
+
+.bcasw-card {
+	background: var(--ba-surface);
+	border: 1px solid var(--ba-border);
+	border-radius: var(--ba-radius);
+	padding: 24px 28px;
+	margin-bottom: 20px;
+}
+
+.bcasw-card__title {
+	margin: 0 0 20px;
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--ba-text);
+	padding-bottom: 14px;
+	border-bottom: 1px solid var(--ba-border);
+}
+
+/* ── Field rows ──────────────────────────────────────────────────────────── */
+
+.bcasw-field {
+	display: grid;
+	grid-template-columns: 220px 1fr;
+	gap: 12px 20px;
+	align-items: start;
+	padding: 14px 0;
+	border-bottom: 1px solid var(--ba-border);
+}
+
+.bcasw-field:last-child {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.bcasw-field label {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--ba-text);
+	padding-top: 8px;
+}
+
+.bcasw-field .description {
+	font-size: 0.8rem;
+	color: var(--ba-muted);
+	margin-top: 5px;
+	line-height: 1.5;
+}
+
+.bcasw-field input[type="text"],
+.bcasw-field textarea,
+.bcasw-field input[type="tel"] {
+	width: 100%;
+	border: 1px solid var(--ba-border);
+	border-radius: var(--ba-radius-sm);
+	padding: 9px 12px;
+	font-size: 0.9rem;
+	color: var(--ba-text);
+	background: var(--ba-surface);
+	transition: border-color 0.15s, box-shadow 0.15s;
+	line-height: 1.5;
+}
+
+.bcasw-field input[type="text"]:focus,
+.bcasw-field textarea:focus,
+.bcasw-field input[type="tel"]:focus {
+	border-color: var(--ba-blue);
+	box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.2);
+	outline: none;
+}
+
+.bcasw-field textarea {
+	min-height: 110px;
+	resize: vertical;
+	font-family: "SFMono-Regular", Consolas, monospace;
+	font-size: 0.82rem;
+}
+
+/* Toggle checkboxes */
+.bcasw-toggle-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.bcasw-toggle-row input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+	accent-color: var(--ba-green);
+	cursor: pointer;
+}
+
+/* ── Variable pills ──────────────────────────────────────────────────────── */
+
+.bcasw-vars {
+	margin-top: 8px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.bcasw-var-pill {
+	display: inline-block;
+	padding: 3px 8px;
+	background: #f3f4f6;
+	border: 1px solid var(--ba-border);
+	border-radius: 4px;
+	font-size: 0.75rem;
+	font-family: "SFMono-Regular", Consolas, monospace;
+	color: #be4bdb;
+	cursor: pointer;
+	user-select: all;
+	transition: background 0.12s;
+}
+
+.bcasw-var-pill:hover {
+	background: #e8d5f5;
+}
+
+/* ── Saved notice ────────────────────────────────────────────────────────── */
+
+.bcasw-saved-notice {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 18px;
+	background: var(--ba-green-bg);
+	border: 1px solid rgba(37,211,102,0.4);
+	border-radius: var(--ba-radius-sm);
+	color: #1a6b3a;
+	font-weight: 600;
+	font-size: 0.9rem;
+	margin-bottom: 20px;
+}
+
+/* ── Submit row ──────────────────────────────────────────────────────────── */
+
+.bcasw-submit-row {
+	margin-top: 24px;
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+
+.bcasw-btn-save {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 11px 24px;
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: #fff;
+	background: var(--ba-blue);
+	border: none;
+	border-radius: var(--ba-radius-sm);
+	cursor: pointer;
+	transition: background 0.15s, transform 0.12s;
+}
+
+.bcasw-btn-save:hover {
+	background: #135e96;
+}
+
+.bcasw-btn-save:active {
+	transform: scale(0.97);
+}
+
+/* =========================================================================
+   BANK ACCOUNT REPEATER
+   ========================================================================= */
+
+.bcasw-banks-list {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+.bcasw-bank-row {
+	background: var(--ba-surface-2);
+	border: 1px solid var(--ba-border);
+	border-radius: var(--ba-radius);
+	overflow: hidden;
+	transition: box-shadow 0.15s;
+}
+
+.bcasw-bank-row.is-dragging {
+	box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+	opacity: 0.95;
+}
+
+.bcasw-bank-row__header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 18px;
+	cursor: pointer;
+	background: var(--ba-surface);
+	border-bottom: 1px solid var(--ba-border);
+	transition: background 0.12s;
+}
+
+.bcasw-bank-row__header:hover {
+	background: var(--ba-surface-2);
+}
+
+.bcasw-bank-row__drag {
+	color: var(--ba-muted);
+	cursor: grab;
+	font-size: 1.2rem;
+	flex-shrink: 0;
+}
+
+.bcasw-bank-row__name {
+	flex: 1;
+	font-weight: 700;
+	font-size: 0.95rem;
+	color: var(--ba-text);
+}
+
+.bcasw-bank-row__default-badge {
+	font-size: 0.72rem;
+	font-weight: 700;
+	padding: 2px 8px;
+	background: var(--ba-green-bg);
+	color: var(--ba-green);
+	border-radius: 20px;
+	border: 1px solid rgba(37,211,102,0.3);
+}
+
+.bcasw-bank-row__toggle {
+	color: var(--ba-muted);
+	font-size: 1rem;
+	transition: transform 0.18s;
+	flex-shrink: 0;
+}
+
+.bcasw-bank-row.is-open .bcasw-bank-row__toggle {
+	transform: rotate(180deg);
+}
+
+.bcasw-bank-row__body {
+	display: none;
+	padding: 20px 18px;
+}
+
+.bcasw-bank-row.is-open .bcasw-bank-row__body {
+	display: block;
+}
+
+/* Fields inside a bank row */
+.bcasw-bank-fields {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 14px;
+	margin-bottom: 16px;
+}
+
+.bcasw-bank-field label {
+	display: block;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--ba-text);
+	margin-bottom: 5px;
+}
+
+.bcasw-bank-field input {
+	width: 100%;
+	border: 1px solid var(--ba-border);
+	border-radius: var(--ba-radius-sm);
+	padding: 8px 10px;
+	font-size: 0.88rem;
+	color: var(--ba-text);
+	background: var(--ba-surface);
+	transition: border-color 0.15s;
+}
+
+.bcasw-bank-field input:focus {
+	border-color: var(--ba-blue);
+	outline: none;
+}
+
+.bcasw-bank-row__footer {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding-top: 14px;
+	border-top: 1px solid var(--ba-border);
+	flex-wrap: wrap;
+}
+
+.bcasw-default-radio {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--ba-text);
+	cursor: pointer;
+}
+
+.bcasw-default-radio input {
+	width: 16px;
+	height: 16px;
+	accent-color: var(--ba-green);
+}
+
+.bcasw-remove-btn {
+	margin-left: auto;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 7px 14px;
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: #c0392b;
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	border-radius: var(--ba-radius-sm);
+	cursor: pointer;
+	transition: background 0.12s;
+}
+
+.bcasw-remove-btn:hover {
+	background: #fee2e2;
+}
+
+/* Add account button */
+.bcasw-add-bank-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 18px;
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: var(--ba-blue);
+	background: #f0f7ff;
+	border: 2px dashed #93c5fd;
+	border-radius: var(--ba-radius);
+	cursor: pointer;
+	width: 100%;
+	justify-content: center;
+	transition: background 0.15s, border-color 0.15s;
+	margin-bottom: 8px;
+}
+
+.bcasw-add-bank-btn:hover {
+	background: #dbeafe;
+	border-color: var(--ba-blue);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 700px) {
+	.bcasw-field {
+		grid-template-columns: 1fr;
+	}
+
+	.bcasw-field label {
+		padding-top: 0;
+	}
+
+	.bcasw-tabs {
+		gap: 2px;
+	}
+
+	.bcasw-tab-btn {
+		padding: 9px 12px;
+		font-size: 0.82rem;
+	}
+}
