@@ -17,13 +17,12 @@ class BCASW_Order_Status {
 	const STATUS_KEY   = 'wc-awaiting-receipt';      // with wc- prefix
 
 	public function init(): void {
-		add_action( 'init',                                          array( $this, 'register_post_status' ) );
-		add_filter( 'woocommerce_register_shop_order_statuses',      array( $this, 'register_wc_status' ) );
-		add_filter( 'woocommerce_order_statuses',                    array( $this, 'add_to_order_statuses' ) );
-		add_action( 'woocommerce_checkout_order_processed',          array( $this, 'set_bacs_order_status' ), 10, 3 );
-		add_action( 'woocommerce_thankyou',                          array( $this, 'ensure_bacs_awaiting' ), 5 );
-		add_filter( 'woocommerce_valid_order_statuses_for_payment',  array( $this, 'allow_payment_from_awaiting' ) );
-		add_filter( 'wc_order_statuses',                             array( $this, 'add_to_order_statuses' ) );
+		add_action( 'init',                                         array( $this, 'register_post_status' ) );
+		add_filter( 'woocommerce_register_shop_order_statuses',     array( $this, 'register_wc_status' ) );
+		add_filter( 'woocommerce_order_statuses',                   array( $this, 'add_to_order_statuses' ) );
+		add_action( 'woocommerce_checkout_order_processed',         array( $this, 'set_bacs_order_status' ), 10, 3 );
+		add_filter( 'woocommerce_valid_order_statuses_for_payment', array( $this, 'allow_payment_from_awaiting' ) );
+		add_filter( 'wc_order_statuses',                            array( $this, 'add_to_order_statuses' ) );
 
 		// Bulk actions and admin column colour.
 		add_filter( 'bulk_actions-edit-shop_order',                  array( $this, 'add_bulk_action' ) );
@@ -97,38 +96,22 @@ class BCASW_Order_Status {
 	// ─── Order assignment ─────────────────────────────────────────────────────
 
 	/**
-	 * Move new BACS orders into Awaiting Receipt.
-	 * Fires at checkout_order_processed after order is created.
+	 * Move new BACS orders into Awaiting Receipt immediately after checkout.
+	 * Fires at priority 10 (bank selector saves at priority 5, before this).
 	 *
-	 * @param int      $order_id   Order ID.
+	 * @param int      $order_id    Order ID.
 	 * @param array    $posted_data Posted checkout data.
-	 * @param WC_Order $order      Order object.
+	 * @param WC_Order $order       Order object.
 	 */
 	public function set_bacs_order_status( int $order_id, array $posted_data, WC_Order $order ): void {
+		// Apply to ALL BACS orders — no dependency on plugin settings.
 		if ( $order->get_payment_method() !== 'bacs' ) {
 			return;
 		}
-		if ( ! BCASW_Settings::get( 'bcasw_bacs_only' ) ) {
-			return;
-		}
-		$order->update_status( self::STATUS_SLUG, __( 'Awaiting customer receipt via WhatsApp.', 'bcas-to-whatsapp' ) );
-	}
-
-	/**
-	 * Fallback — if the order is on-hold and was placed via BACS, move it.
-	 * Handles edge cases where checkout_order_processed already ran.
-	 */
-	public function ensure_bacs_awaiting( int $order_id ): void {
-		$order = wc_get_order( $order_id );
-		if ( ! $order ) {
-			return;
-		}
-		if ( $order->get_payment_method() !== 'bacs' ) {
-			return;
-		}
-		if ( $order->get_status() === 'on-hold' ) {
-			$order->update_status( self::STATUS_SLUG, __( 'Moved to Awaiting Receipt.', 'bcas-to-whatsapp' ) );
-		}
+		$order->update_status(
+			self::STATUS_SLUG,
+			__( 'Awaiting customer receipt via WhatsApp.', 'bcas-to-whatsapp' )
+		);
 	}
 
 	/**

@@ -182,12 +182,12 @@ $all_placeholders = array(
 				</div>
 
 				<div class="bcasw-field">
-					<label for="bcasw_wa_admin_number"><?php esc_html_e( 'Admin WhatsApp Number', 'bcas-to-whatsapp' ); ?></label>
+					<label for="bcasw_wa_admin_number"><?php esc_html_e( 'Internal WhatsApp Number', 'bcas-to-whatsapp' ); ?></label>
 					<div>
 						<input type="tel" id="bcasw_wa_admin_number" name="bcasw_wa_admin_number"
 							value="<?php echo esc_attr( BCASW_Settings::get( 'bcasw_wa_admin_number' ) ); ?>"
 							placeholder="+2347032896514">
-						<p class="description"><?php esc_html_e( 'Used by the admin order page "Contact Customer on WhatsApp" button.', 'bcas-to-whatsapp' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Fallback number if a customer has no billing phone. The admin "Message Customer" button uses the customer\'s own billing phone first.', 'bcas-to-whatsapp' ); ?></p>
 					</div>
 				</div>
 			</div>

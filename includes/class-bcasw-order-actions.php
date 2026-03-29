@@ -111,17 +111,21 @@ class BCASW_Order_Actions {
 			return;
 		}
 
-		$admin_number  = BCASW_Settings::get( 'bcasw_wa_admin_number' );
 		$admin_tpl     = BCASW_Settings::get( 'bcasw_wa_admin_tpl' );
+		$admin_number  = BCASW_Settings::get( 'bcasw_wa_admin_number' );
 
-		if ( empty( $admin_number ) ) {
-			echo '<p class="description">' . esc_html__( 'Set an admin WhatsApp number in BCAS to WhatsApp settings.', 'bcas-to-whatsapp' ) . '</p>';
+		// Use the customer's billing phone to contact them directly.
+		// Fall back to admin number if billing phone is missing.
+		$contact_number = $order->get_billing_phone() ?: $admin_number;
+
+		if ( empty( $contact_number ) ) {
+			echo '<p class="description">' . esc_html__( 'Set a Store WhatsApp number in BCAS to WhatsApp settings, or ensure the customer has a billing phone.', 'bcas-to-whatsapp' ) . '</p>';
 			return;
 		}
 
 		$bank     = self::get_order_bank( $order );
 		$message  = BCASW_Template_Renderer::render( $admin_tpl, $order, $bank );
-		$wa_url   = BCASW_Template_Renderer::whatsapp_url( $admin_number, $message );
+		$wa_url   = BCASW_Template_Renderer::whatsapp_url( $contact_number, $message );
 
 		echo '<p>'
 			. '<a href="' . esc_url( $wa_url ) . '" target="_blank" rel="noopener" class="button button-secondary" style="width:100%;text-align:center;">'
@@ -134,30 +138,16 @@ class BCASW_Order_Actions {
 			. '</p>';
 	}
 
-	// ─── Helper ───────────────────────────────────────────────────────────────
+	// ─── Helper ────────────────────────────────────────────────────────
 
 	/**
-	 * Retrieve the stored bank account for an order, falling back to the default.
+	 * Retrieve the bank account for an order.
+	 * Delegates to the canonical helper in BCASW_Bank_Selector.
 	 *
 	 * @param WC_Order $order Order object.
 	 * @return array|null
 	 */
 	public static function get_order_bank( WC_Order $order ): ?array {
-		$bank_id = $order->get_meta( '_bcasw_selected_bank_id' );
-		if ( $bank_id ) {
-			$bank = BCASW_Bank_Accounts::get_by_id( $bank_id );
-			if ( $bank ) {
-				return $bank;
-			}
-		}
-		// Fallback: use stored snapshot if available.
-		$snapshot = $order->get_meta( '_bcasw_bank_snapshot' );
-		if ( $snapshot ) {
-			$decoded = json_decode( $snapshot, true );
-			if ( is_array( $decoded ) ) {
-				return $decoded;
-			}
-		}
-		return BCASW_Bank_Accounts::get_default();
+		return BCASW_Bank_Selector::get_bank_for_order( $order );
 	}
 }

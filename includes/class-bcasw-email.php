@@ -34,17 +34,26 @@ class BCASW_Email {
 	 * @param WC_Email $email         Email instance.
 	 */
 	public function inject_instructions( WC_Order $order, bool $sent_to_admin, bool $plain_text, WC_Email $email ): void {
-		// Only for BACS payment method and relevant email types.
+		// Only for BACS orders.
 		if ( $order->get_payment_method() !== 'bacs' ) {
 			return;
 		}
 
-		$target_emails = array(
+		// WC_Email_Customer_On_Hold_Order already renders bank account details
+		// natively via the woocommerce_bacs_accounts option (which we override
+		// via filter_bacs_email_accounts below). Skip to avoid duplication.
+		$emails_wc_handles = array(
 			'WC_Email_Customer_On_Hold_Order',
+		);
+		if ( in_array( get_class( $email ), $emails_wc_handles, true ) ) {
+			return;
+		}
+
+		// Inject only for emails where WC does NOT show bank details.
+		$target_emails = array(
 			'WC_Email_Customer_Processing_Order',
 			'WC_Email_New_Order',
 		);
-
 		if ( ! in_array( get_class( $email ), $target_emails, true ) ) {
 			return;
 		}

@@ -16,6 +16,8 @@ class BCASW_Frontend {
 		add_action( 'woocommerce_thankyou',                   array( $this, 'render_inline_block' ), 8 );
 		add_action( 'woocommerce_thankyou',                   array( $this, 'render_popup' ), 25 );
 		add_action( 'wp_enqueue_scripts',                     array( $this, 'enqueue_assets' ) );
+		// Fix #5: apply plugin checkout description to BACS gateway.
+		add_filter( 'woocommerce_gateway_description',        array( $this, 'filter_bacs_description' ), 10, 2 );
 	}
 
 	// ─── BACS-only mode ───────────────────────────────────────────────────────
@@ -36,7 +38,10 @@ class BCASW_Frontend {
 	// ─── Asset enqueue ────────────────────────────────────────────────────────
 
 	public function enqueue_assets(): void {
-		if ( ! function_exists( 'is_order_received_page' ) || ! is_order_received_page() ) {
+		$is_thankyou = function_exists( 'is_order_received_page' ) && is_order_received_page();
+		$is_checkout = function_exists( 'is_checkout' ) && is_checkout() && ! $is_thankyou;
+
+		if ( ! $is_thankyou && ! $is_checkout ) {
 			return;
 		}
 
@@ -68,6 +73,23 @@ class BCASW_Frontend {
 				),
 			)
 		);
+	}
+
+	// ─── BACS gateway description ─────────────────────────────────────────────
+
+	/**
+	 * Replace the BACS checkout description with the plugin setting.
+	 *
+	 * @param string $description Current gateway description.
+	 * @param string $payment_id  Payment gateway ID.
+	 * @return string
+	 */
+	public function filter_bacs_description( string $description, string $payment_id ): string {
+		if ( 'bacs' !== $payment_id ) {
+			return $description;
+		}
+		$custom = BCASW_Settings::get( 'bcasw_checkout_desc' );
+		return $custom ?: $description;
 	}
 
 	// ─── Helpers ──────────────────────────────────────────────────────────────
@@ -108,8 +130,8 @@ class BCASW_Frontend {
 			return;
 		}
 
-		// Selector returns the active bank and renders the card UI if needed.
-		$bank = BCASW_Bank_Selector::render_and_get_bank( $order );
+		// Read the bank account stored on this order (set during checkout).
+		$bank = BCASW_Bank_Selector::get_bank_for_order( $order );
 		if ( ! $bank ) {
 			return;
 		}

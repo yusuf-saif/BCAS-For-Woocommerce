@@ -1,22 +1,30 @@
 {
     "cSpell.words": [
-        "ABSPATH",
         "absint",
+        "ABSPATH",
+        "acco",
         "ajaxurl",
         "BACS",
         "BCAS",
         "BCASW",
         "bloginfo",
+        "colour",
+        "esversion",
         "HPOS",
         "iban",
         "intelephense",
+        "kses",
         "nonce",
+        "Sanitise",
+        "Sanitised",
         "sanitize",
         "theorder",
+        "unconfigured",
+        "unslash",
+        "unts",
         "woocommerce",
         "Yusuf"
     ],
-
     // ── PHP / Intelephense ───────────────────────────────────────────────────
     // Enables the built-in WordPress stub set so Intelephense knows about
     // all WordPress core functions (add_action, esc_html, wp_nonce_field, etc.)
@@ -90,19 +98,15 @@
         "zlib",
         "wordpress"
     ],
-
     "intelephense.environment.phpVersion": "7.4",
-
     // WooCommerce classes (WC_Order, WC_Email, etc.) are loaded at runtime
     // and have no Intelephense stubs — suppress these false positives.
-    "intelephense.diagnostics.undefinedTypes":     false,
+    "intelephense.diagnostics.undefinedTypes": false,
     "intelephense.diagnostics.undefinedFunctions": false,
     "intelephense.diagnostics.undefinedConstants": false,
-
     // Keep useful diagnostics on.
     "intelephense.diagnostics.undefinedVariables": true,
-    "intelephense.diagnostics.undefinedMethods":   true,
-
+    "intelephense.diagnostics.undefinedMethods": true,
     "[php]": {
         "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
     }

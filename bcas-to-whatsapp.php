@@ -3,7 +3,7 @@
  * Plugin Name: BCAS to WhatsApp
  * Plugin URI:  https://saifyusuf.xyz
  * Description: WooCommerce Bank Transfer (BACS) helper — admin-configurable bank details, custom order status, WhatsApp receipt flow, and mobile-friendly thank-you experience.
- * Version:     2.0.0
+ * Version:     2.0.1
  * Author:      S A Yusuf
  * Author URI:  https://saifyusuf.xyz
  * Text Domain: bcas-to-whatsapp
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-define( 'BCASW_VERSION', '2.0.0' );
+define( 'BCASW_VERSION', '2.0.1' );
 define( 'BCASW_FILE',    __FILE__ );
 define( 'BCASW_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'BCASW_URL',     plugin_dir_url( __FILE__ ) );

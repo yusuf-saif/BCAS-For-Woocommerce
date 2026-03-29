@@ -1,10 +1,15 @@
 <?php
 /**
- * Bank account selector — shown on the thank-you page when multiple accounts exist.
+ * Bank account selector — rendered at CHECKOUT before payment methods.
  *
- * When the customer clicks a bank account, the choice is saved to order meta via AJAX:
+ * The customer picks a bank account before submitting the order.
+ * The selection is POSTed with the checkout form and saved to order meta:
+ *
  *   _bcasw_selected_bank_id  — UUID of the chosen account
- *   _bcasw_bank_snapshot     — JSON snapshot of the account data at time of order
+ *   _bcasw_bank_snapshot     — JSON snapshot of account data at time of order
+ *
+ * Snapshots ensure historical orders remain accurate even if accounts change.
+ * No AJAX is needed — everything is handled at checkout POST time.
  *
  * @package BCAS_To_WhatsApp
  */
@@ -16,130 +21,149 @@ if ( ! defined( 'ABSPATH' ) ) {
 class BCASW_Bank_Selector {
 
 	public function init(): void {
-		// Save selection via AJAX (both logged-in and guest customers).
-		add_action( 'wp_ajax_bcasw_select_bank',        array( $this, 'ajax_save_bank' ) );
-		add_action( 'wp_ajax_nopriv_bcasw_select_bank', array( $this, 'ajax_save_bank' ) );
+		// Render selector in the checkout order-review area.
+		add_action( 'woocommerce_review_order_before_payment', array( $this, 'render_checkout_selector' ) );
+
+		// Save selection when order is created during checkout.
+		add_action( 'woocommerce_checkout_order_processed', array( $this, 'save_bank_on_checkout' ), 5, 3 );
 	}
 
-	// ─── Rendering ────────────────────────────────────────────────────────────
+	// ─── Checkout UI ──────────────────────────────────────────────────────────
 
 	/**
-	 * Render the bank selector (or nothing if there's only one account).
-	 * Called by BCASW_Frontend before rendering full bank details.
-	 *
-	 * @param WC_Order $order The order.
-	 * @return string|null  The pre-selected/saved bank account array, or null.
+	 * Output the bank-account selector inside the checkout order review.
+	 * Hidden when a non-BACS payment method is selected (JS-controlled).
 	 */
-	public static function render_and_get_bank( WC_Order $order ): ?array {
+	public function render_checkout_selector(): void {
 		$accounts = BCASW_Bank_Accounts::get_all();
 
 		if ( empty( $accounts ) ) {
-			return null;
+			return;
 		}
 
-		// If a bank is already saved on this order, use it without showing selector.
-		$saved_id = $order->get_meta( '_bcasw_selected_bank_id' );
-		if ( $saved_id ) {
-			$saved = BCASW_Bank_Accounts::get_by_id( $saved_id );
-			if ( $saved ) {
-				return $saved;
-			}
-		}
+		$default    = BCASW_Bank_Accounts::get_default();
+		$default_id = $default ? $default['id'] : '';
+		$multiple   = count( $accounts ) > 1;
 
-		// Single account — auto-select silently.
-		if ( count( $accounts ) === 1 ) {
-			self::persist_bank( $order, $accounts[0] );
-			return $accounts[0];
-		}
-
-		// Multiple accounts — show selector and return the default for initial display.
-		self::render_selector_html( $order, $accounts );
-		$default = BCASW_Bank_Accounts::get_default();
-		return $default;
-	}
-
-	// ─── HTML ─────────────────────────────────────────────────────────────────
-
-	private static function render_selector_html( WC_Order $order, array $accounts ): void {
-		$default = BCASW_Bank_Accounts::get_default();
-		$default_id = $default['id'] ?? '';
+		// Detect whether BACS is the only gateway (affects initial visibility).
+		$bacs_only = (bool) BCASW_Settings::get( 'bcasw_bacs_only' );
 		?>
-		<div class="bcasw-bank-selector" id="bcasw-bank-selector"
-			data-order-id="<?php echo esc_attr( $order->get_id() ); ?>"
-			data-nonce="<?php echo esc_attr( wp_create_nonce( 'bcasw_select_bank' ) ); ?>">
+		<div class="bcasw-checkout-selector-wrap" id="bcasw-checkout-selector-wrap"
+			data-bacs-only="<?php echo $bacs_only ? 'true' : 'false'; ?>">
 
-			<h3 class="bcasw-selector-heading"><?php esc_html_e( 'Choose a Bank Account', 'bcas-to-whatsapp' ); ?></h3>
-			<p class="bcasw-selector-sub"><?php esc_html_e( 'Select the account you will transfer to:', 'bcas-to-whatsapp' ); ?></p>
+			<?php // Hidden field always submitted with checkout form. ?>
+			<input type="hidden"
+				name="bcasw_selected_bank_id"
+				id="bcasw_selected_bank_id"
+				value="<?php echo esc_attr( $default_id ); ?>">
 
-			<div class="bcasw-selector-grid">
-				<?php foreach ( $accounts as $account ) : ?>
-					<button type="button"
-						class="bcasw-bank-card <?php echo ( $account['id'] === $default_id ) ? 'bcasw-bank-card--active' : ''; ?>"
-						data-bank-id="<?php echo esc_attr( $account['id'] ); ?>"
-						data-bank='<?php echo esc_attr( wp_json_encode( $account ) ); ?>'
-						aria-pressed="<?php echo ( $account['id'] === $default_id ) ? 'true' : 'false'; ?>">
+			<?php if ( $multiple ) : ?>
 
-						<span class="bcasw-card-label"><?php echo esc_html( $account['label'] ?: $account['bank_name'] ); ?></span>
-						<span class="bcasw-card-bank"><?php echo esc_html( $account['bank_name'] ); ?></span>
-						<span class="bcasw-card-acct"><?php echo esc_html( $account['account_number'] ); ?></span>
-					</button>
-				<?php endforeach; ?>
-			</div>
+				<div class="bcasw-selector-checkout">
+					<h4 class="bcasw-selector-heading"><?php esc_html_e( 'Select Bank Account to Transfer To', 'bcas-to-whatsapp' ); ?></h4>
+
+					<div class="bcasw-selector-grid">
+						<?php foreach ( $accounts as $account ) :
+							$is_active = ( $account['id'] === $default_id );
+						?>
+							<button type="button"
+								class="bcasw-bank-card <?php echo $is_active ? 'bcasw-bank-card--active' : ''; ?>"
+								data-bank-id="<?php echo esc_attr( $account['id'] ); ?>"
+								aria-pressed="<?php echo $is_active ? 'true' : 'false'; ?>">
+								<span class="bcasw-card-label"><?php echo esc_html( $account['label'] ?: $account['bank_name'] ); ?></span>
+								<span class="bcasw-card-bank"><?php echo esc_html( $account['bank_name'] ); ?></span>
+								<span class="bcasw-card-acct"><?php echo esc_html( $account['account_number'] ); ?></span>
+							</button>
+						<?php endforeach; ?>
+					</div>
+				</div>
+
+			<?php else :
+				// Single account — show info, no choice needed.
+				$acc = $accounts[0];
+			?>
+				<div class="bcasw-checkout-bank-info">
+					<p class="bcasw-checkout-bank-label"><?php esc_html_e( 'Pay to:', 'bcas-to-whatsapp' ); ?></p>
+					<p class="bcasw-checkout-bank-details">
+						<strong><?php echo esc_html( $acc['bank_name'] ); ?></strong> &mdash;
+						<?php echo esc_html( $acc['account_name'] ); ?>
+						&mdash; <span class="bcasw-acct-mono"><?php echo esc_html( $acc['account_number'] ); ?></span>
+					</p>
+				</div>
+			<?php endif; ?>
+
 		</div>
 		<?php
 	}
 
-	// ─── AJAX handler ─────────────────────────────────────────────────────────
+	// ─── Order creation ───────────────────────────────────────────────────────
 
 	/**
-	 * Ajax: save selected bank to order meta and return rendered account data.
+	 * Save selected bank account to order meta when checkout is processed.
+	 * Fires at `woocommerce_checkout_order_processed` (priority 5, before status change).
+	 *
+	 * @param int      $order_id    Order ID.
+	 * @param array    $posted_data Checkout POST data (already processed by WC).
+	 * @param WC_Order $order       Order object.
 	 */
-	public function ajax_save_bank(): void {
-		check_ajax_referer( 'bcasw_select_bank', 'nonce' );
-
-		$order_id = absint( $_POST['order_id'] ?? 0 );
-		$bank_id  = sanitize_text_field( $_POST['bank_id'] ?? '' );
-
-		if ( ! $order_id || ! $bank_id ) {
-			wp_send_json_error( array( 'message' => 'Missing data.' ) );
+	public function save_bank_on_checkout( int $order_id, array $posted_data, WC_Order $order ): void {
+		if ( $order->get_payment_method() !== 'bacs' ) {
 			return;
 		}
 
-		$order = wc_get_order( $order_id );
-		if ( ! $order ) {
-			wp_send_json_error( array( 'message' => 'Order not found.' ) );
-			return;
-		}
+		// Read from POST; wp_unslash avoids double-slashing.
+		$bank_id = sanitize_text_field( wp_unslash( $_POST['bcasw_selected_bank_id'] ?? '' ) );
+		$bank    = $bank_id ? BCASW_Bank_Accounts::get_by_id( $bank_id ) : null;
 
-		// Verify the requester owns this order (guest: use order key cookie / URL).
-		if ( ! $order->has_status( array(
-			BCASW_Order_Status::STATUS_SLUG,
-			'on-hold',
-			'pending',
-		) ) ) {
-			wp_send_json_error( array( 'message' => 'Invalid order status.' ) );
-			return;
-		}
-
-		$bank = BCASW_Bank_Accounts::get_by_id( $bank_id );
+		// Fallback: no selection or invalid ID → use default account.
 		if ( ! $bank ) {
-			wp_send_json_error( array( 'message' => 'Bank not found.' ) );
-			return;
+			$bank = BCASW_Bank_Accounts::get_default();
 		}
 
-		self::persist_bank( $order, $bank );
-
-		wp_send_json_success( array( 'bank' => $bank ) );
+		if ( $bank ) {
+			self::persist_bank( $order, $bank );
+		}
 	}
 
-	// ─── Persistence ──────────────────────────────────────────────────────────
+	// ─── Read helpers ─────────────────────────────────────────────────────────
 
 	/**
-	 * Write bank ID and a full snapshot into order meta.
-	 * Snapshot ensures historical orders still show correct data if settings change.
+	 * Get the bank account for an order.
+	 * Priority: snapshot → stored ID → current default.
 	 *
 	 * @param WC_Order $order Order object.
-	 * @param array    $bank  Bank account array.
+	 * @return array|null
+	 */
+	public static function get_bank_for_order( WC_Order $order ): ?array {
+		// Snapshot is the most reliable (per-order immutable record).
+		$snapshot = $order->get_meta( '_bcasw_bank_snapshot' );
+		if ( $snapshot ) {
+			$decoded = json_decode( $snapshot, true );
+			if ( is_array( $decoded ) && ! empty( $decoded ) ) {
+				return $decoded;
+			}
+		}
+
+		// Fallback: look up live account by stored ID.
+		$bank_id = $order->get_meta( '_bcasw_selected_bank_id' );
+		if ( $bank_id ) {
+			$bank = BCASW_Bank_Accounts::get_by_id( $bank_id );
+			if ( $bank ) {
+				return $bank;
+			}
+		}
+
+		// Last resort: current default.
+		return BCASW_Bank_Accounts::get_default();
+	}
+
+	// ─── Write helper ─────────────────────────────────────────────────────────
+
+	/**
+	 * Store bank ID and a full data snapshot on an order.
+	 *
+	 * @param WC_Order $order Order object.
+	 * @param array    $bank  Bank account data array.
 	 */
 	public static function persist_bank( WC_Order $order, array $bank ): void {
 		$order->update_meta_data( '_bcasw_selected_bank_id', $bank['id'] );

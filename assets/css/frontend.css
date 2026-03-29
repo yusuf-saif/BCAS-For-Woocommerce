@@ -483,6 +483,54 @@
 }
 
 /* =========================================================================
+   CHECKOUT BANK SELECTOR
+   ========================================================================= */
+
+.bcasw-checkout-selector-wrap {
+	margin: 16px 0 20px;
+	padding: 16px 18px;
+	background: var(--bcasw-surface-alt);
+	border: 1.5px solid var(--bcasw-border);
+	border-radius: var(--bcasw-radius-sm);
+}
+
+.bcasw-selector-checkout .bcasw-selector-heading {
+	margin: 0 0 12px;
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: var(--bcasw-text);
+}
+
+/* Single-account info (no selector needed) */
+.bcasw-checkout-bank-info {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 6px;
+}
+
+.bcasw-checkout-bank-label {
+	margin: 0;
+	font-size: 0.82rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--bcasw-muted);
+	font-weight: 600;
+}
+
+.bcasw-checkout-bank-details {
+	margin: 0;
+	font-size: 0.9rem;
+	color: var(--bcasw-text);
+}
+
+.bcasw-acct-mono {
+	font-family: "SFMono-Regular", Consolas, monospace;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+}
+
+/* =========================================================================
    RESPONSIVE OVERRIDES
    ========================================================================= */
 

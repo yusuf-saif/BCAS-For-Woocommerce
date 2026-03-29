@@ -74,6 +74,35 @@ class BCASW_Bank_Accounts {
 		return count( self::get_all() );
 	}
 
+	/**
+	 * Return true if there is at least one account with real bank details.
+	 * Accounts with blank account_number are considered unconfigured placeholders.
+	 */
+	public static function is_configured(): bool {
+		foreach ( self::get_all() as $a ) {
+			if ( ! empty( $a['account_number'] ) && ! empty( $a['bank_name'] ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Return the default account only if it has real (non-empty) details.
+	 * Returns null if the default account is a blank placeholder.
+	 */
+	public static function get_default_if_configured(): ?array {
+		$default = self::get_default();
+		if ( ! $default ) {
+			return null;
+		}
+		// Require at minimum an account_number and bank_name.
+		if ( empty( $default['account_number'] ) || empty( $default['bank_name'] ) ) {
+			return null;
+		}
+		return $default;
+	}
+
 	// ─── Write ────────────────────────────────────────────────────────────────
 
 	/**
@@ -103,6 +132,43 @@ class BCASW_Bank_Accounts {
 		}
 
 		update_option( self::OPTION_KEY, wp_json_encode( $clean ) );
+
+		// Keep WooCommerce native BACS settings in sync.
+		self::sync_to_woocommerce( $clean );
+	}
+
+	/**
+	 * Sync the default bank account into WooCommerce's woocommerce_bacs_accounts option.
+	 * This keeps the native WC BACS settings page and emails consistent.
+	 *
+	 * @param array $acco  unts Sanitised accounts array.
+	 */
+	private static function sync_to_woocommerce( array $accounts ): void {
+		$default = null;
+		foreach ( $accounts as $a ) {
+			if ( ! empty( $a['is_default'] ) ) {
+				$default = $a;
+				break;
+			}
+		}
+		if ( ! $default && ! empty( $accounts ) ) {
+			$default = $accounts[0];
+		}
+		if ( ! $default ) {
+			return; // No accounts — do not overwrite WC settings.
+		}
+
+		$wc_account = array(
+			array(
+				'account_name'   => $default['account_name']   ?? '',
+				'account_number' => $default['account_number'] ?? '',
+				'bank_name'      => $default['bank_name']      ?? '',
+				'sort_code'      => $default['sort_code']      ?? '',
+				'iban'           => $default['iban']            ?? '',
+				'bic'            => $default['swift_bic']      ?? '',
+			),
+		);
+		update_option( 'woocommerce_bacs_accounts', $wc_account );
 	}
 
 	/**
