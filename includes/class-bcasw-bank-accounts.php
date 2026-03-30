@@ -76,11 +76,14 @@ class BCASW_Bank_Accounts {
 
 	/**
 	 * Return true if there is at least one account with real bank details.
-	 * Accounts with blank account_number are considered unconfigured placeholders.
+	 *
+	 * A bank account is considered configured only if bank_name, account_name,
+	 * and account_number are all non-empty, non-whitespace, and not known
+	 * placeholder text.
 	 */
 	public static function is_configured(): bool {
 		foreach ( self::get_all() as $a ) {
-			if ( ! empty( $a['account_number'] ) && ! empty( $a['bank_name'] ) ) {
+			if ( self::is_account_valid( $a ) ) {
 				return true;
 			}
 		}
@@ -88,19 +91,52 @@ class BCASW_Bank_Accounts {
 	}
 
 	/**
-	 * Return the default account only if it has real (non-empty) details.
-	 * Returns null if the default account is a blank placeholder.
+	 * Check whether a single bank account has valid, real data.
+	 *
+	 * Rejects empty strings, whitespace-only values, and known placeholder text.
+	 * This definition is used consistently across admin notices, sync, rendering.
+	 *
+	 * @param array $account Bank account data array.
+	 * @return bool
+	 */
+	public static function is_account_valid( array $account ): bool {
+		$placeholders = array(
+			'your bank name',
+			'your account name',
+			'your account number',
+		);
+
+		$bank_name      = trim( $account['bank_name'] ?? '' );
+		$account_name   = trim( $account['account_name'] ?? '' );
+		$account_number = trim( $account['account_number'] ?? '' );
+
+		// All three required fields must be present.
+		if ( '' === $bank_name || '' === $account_name || '' === $account_number ) {
+			return false;
+		}
+
+		// Reject known placeholder strings.
+		if (
+			in_array( strtolower( $bank_name ), $placeholders, true ) ||
+			in_array( strtolower( $account_name ), $placeholders, true ) ||
+			in_array( strtolower( $account_number ), $placeholders, true )
+		) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Return the default account only if it passes the configured validation.
+	 * Returns null if the default account is a placeholder or has missing fields.
 	 */
 	public static function get_default_if_configured(): ?array {
 		$default = self::get_default();
 		if ( ! $default ) {
 			return null;
 		}
-		// Require at minimum an account_number and bank_name.
-		if ( empty( $default['account_number'] ) || empty( $default['bank_name'] ) ) {
-			return null;
-		}
-		return $default;
+		return self::is_account_valid( $default ) ? $default : null;
 	}
 
 	// ─── Write ────────────────────────────────────────────────────────────────
@@ -141,7 +177,10 @@ class BCASW_Bank_Accounts {
 	 * Sync the default bank account into WooCommerce's woocommerce_bacs_accounts option.
 	 * This keeps the native WC BACS settings page and emails consistent.
 	 *
-	 * @param array $acco  unts Sanitised accounts array.
+	 * Only syncs if the default account passes validation. Invalid or placeholder
+	 * data is never written to WooCommerce native BACS settings.
+	 *
+	 * @param array $accounts Sanitised accounts array.
 	 */
 	private static function sync_to_woocommerce( array $accounts ): void {
 		$default = null;
@@ -155,7 +194,14 @@ class BCASW_Bank_Accounts {
 			$default = $accounts[0];
 		}
 		if ( ! $default ) {
-			return; // No accounts — do not overwrite WC settings.
+			self::debug_log( 'Bank sync skipped: no accounts exist.' );
+			return;
+		}
+
+		// Validate before syncing — never push invalid data to WC BACS.
+		if ( ! self::is_account_valid( $default ) ) {
+			self::debug_log( 'Bank sync skipped: default account is invalid or placeholder.' );
+			return;
 		}
 
 		$wc_account = array(
@@ -169,6 +215,18 @@ class BCASW_Bank_Accounts {
 			),
 		);
 		update_option( 'woocommerce_bacs_accounts', $wc_account );
+		self::debug_log( 'Bank sync completed: default account synced to WC BACS.' );
+	}
+
+	/**
+	 * Log a debug message when WP_DEBUG is enabled.
+	 *
+	 * @param string $message Message to log.
+	 */
+	private static function debug_log( string $message ): void {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[BCAS to WhatsApp] ' . $message );
+		}
 	}
 
 	/**

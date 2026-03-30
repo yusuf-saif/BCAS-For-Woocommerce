@@ -20,9 +20,6 @@ class BCASW_Order_Actions {
 
 		// Admin WhatsApp button on the order edit page.
 		add_action( 'add_meta_boxes',                  array( $this, 'add_admin_whatsapp_meta_box' ) );
-
-		// Status colour CSS.
-		add_action( 'admin_head',                      array( 'BCASW_Order_Status', 'admin_status_css' ) );
 	}
 
 	// ─── "Mark as Payment Confirmed" action ───────────────────────────────────
@@ -84,16 +81,22 @@ class BCASW_Order_Actions {
 	 * Add a meta box on the order edit page with a WhatsApp admin contact button.
 	 */
 	public function add_admin_whatsapp_meta_box(): void {
-		$screen = function_exists( 'wc_get_page_screen_id' ) ? wc_get_page_screen_id( 'shop-order' ) : 'shop_order';
+		// Register on both legacy post-type screen and HPOS screen.
+		$screens = array( 'shop_order' );
+		if ( function_exists( 'wc_get_page_screen_id' ) ) {
+			$screens[] = wc_get_page_screen_id( 'shop-order' );
+		}
 
-		add_meta_box(
-			'bcasw-admin-whatsapp',
-			__( 'WhatsApp Actions', 'bcas-to-whatsapp' ),
-			array( $this, 'render_admin_whatsapp_meta_box' ),
-			$screen,
-			'side',
-			'default'
-		);
+		foreach ( array_unique( $screens ) as $screen ) {
+			add_meta_box(
+				'bcasw-admin-whatsapp',
+				__( 'WhatsApp Actions', 'bcas-to-whatsapp' ),
+				array( $this, 'render_admin_whatsapp_meta_box' ),
+				$screen,
+				'side',
+				'default'
+			);
+		}
 	}
 
 	/**

@@ -28,12 +28,20 @@ class BCASW_Email {
 	/**
 	 * Add the shared instruction block above the order table in BACS-related emails.
 	 *
-	 * @param WC_Order $order         Order object.
-	 * @param bool     $sent_to_admin Whether email goes to admin.
-	 * @param bool     $plain_text    Whether this is a plain-text email.
-	 * @param WC_Email $email         Email instance.
+	 * @param WC_Order|int $order         Order object or order ID.
+	 * @param bool         $sent_to_admin Whether email goes to admin.
+	 * @param bool         $plain_text    Whether this is a plain-text email.
+	 * @param WC_Email     $email         Email instance.
 	 */
-	public function inject_instructions( WC_Order $order, bool $sent_to_admin, bool $plain_text, WC_Email $email ): void {
+	public function inject_instructions( $order, bool $sent_to_admin, bool $plain_text, $email ): void {
+		// Type guard: WC may pass an order ID instead of WC_Order in some contexts.
+		if ( ! $order instanceof WC_Order ) {
+			$order = wc_get_order( $order );
+			if ( ! $order ) {
+				return;
+			}
+		}
+
 		// Only for BACS orders.
 		if ( $order->get_payment_method() !== 'bacs' ) {
 			return;
@@ -89,25 +97,39 @@ class BCASW_Email {
 	 * the plugin-managed account(s). Allows the WC BACS email class to handle
 	 * the rest of the formatting naturally.
 	 *
-	 * @param array    $accounts  BACS accounts from WC settings.
-	 * @param WC_Order $order     Order object.
+	 * @param array        $accounts  BACS accounts from WC settings.
+	 * @param WC_Order|int $order     Order object or order ID.
 	 * @return array
 	 */
-	public function filter_bacs_email_accounts( array $accounts, WC_Order $order ): array {
+	public function filter_bacs_email_accounts( array $accounts, $order ): array {
+		// Type guard: WC may pass an order ID instead of WC_Order.
+		if ( ! $order instanceof WC_Order ) {
+			$order = wc_get_order( $order );
+			if ( ! $order ) {
+				return $accounts;
+			}
+		}
+
+		// Resolve bank details \u2014 snapshot wins; see BCASW_Bank_Selector::get_bank_for_order().
+		// The snapshot is the per-order immutable record of which bank was used at checkout.
 		$bank = BCASW_Order_Actions::get_order_bank( $order );
-		if ( ! $bank ) {
+
+		// Only replace WC's account list if the resolved bank has valid data.
+		// If bank is empty or a placeholder, return original accounts unchanged
+		// so that WC falls back gracefully rather than emailing blank bank details.
+		if ( ! $bank || ! BCASW_Bank_Accounts::is_account_valid( $bank ) ) {
 			return $accounts;
 		}
 
 		// Map our bank structure to WC's expected BACS account fields.
 		return array(
 			array(
-				'account_name'      => $bank['account_name'] ?? '',
-				'account_number'    => $bank['account_number'] ?? '',
-				'bank_name'         => $bank['bank_name'] ?? '',
-				'sort_code'         => $bank['sort_code'] ?? '',
-				'iban'              => $bank['iban'] ?? '',
-				'bic'               => $bank['swift_bic'] ?? '',
+				'account_name'   => $bank['account_name']  ?? '',
+				'account_number' => $bank['account_number'] ?? '',
+				'bank_name'      => $bank['bank_name']      ?? '',
+				'sort_code'      => $bank['sort_code']      ?? '',
+				'iban'           => $bank['iban']           ?? '',
+				'bic'            => $bank['swift_bic']      ?? '',
 			),
 		);
 	}

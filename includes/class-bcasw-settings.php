@@ -1,15 +1,17 @@
 <?php
+
 /**
  * Settings manager — registers all plugin options and provides a static get() helper.
  *
  * @package BCAS_To_WhatsApp
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
+if (! defined('ABSPATH')) {
 	exit;
 }
 
-class BCASW_Settings {
+class BCASW_Settings
+{
 
 	// ─── Default values ───────────────────────────────────────────────────────
 
@@ -49,58 +51,62 @@ class BCASW_Settings {
 	 * @param mixed  $default Override default (optional).
 	 * @return mixed
 	 */
-	public static function get( string $key, $default = null ) {
-		if ( null === $default ) {
-			$default = self::$defaults[ $key ] ?? '';
+	public static function get(string $key, $default = null)
+	{
+		if (null === $default) {
+			$default = self::$defaults[$key] ?? '';
 		}
-		return get_option( $key, $default );
+		return get_option($key, $default);
 	}
 
 	/**
 	 * Return all default values (used during migration and for blank installs).
 	 */
-	public static function get_defaults(): array {
+	public static function get_defaults(): array
+	{
 		return self::$defaults;
 	}
 
 	// ─── Hooks ────────────────────────────────────────────────────────────────
 
-	public function init(): void {
-		add_action( 'admin_init', array( $this, 'register_settings' ) );
+	public function init(): void
+	{
+		add_action('admin_init', array($this, 'register_settings'));
 	}
 
 	/**
 	 * Register every setting with sanitise callbacks.
 	 */
-	public function register_settings(): void {
+	public function register_settings(): void
+	{
 
 		// ── General ─────────────────────────────────────────────────────────
 
-		register_setting( 'bcasw_general', 'bcasw_enabled',           array( 'sanitize_callback' => 'absint' ) );
-		register_setting( 'bcasw_general', 'bcasw_site_name',         array( 'sanitize_callback' => 'sanitize_text_field' ) );
-		register_setting( 'bcasw_general', 'bcasw_bacs_only',         array( 'sanitize_callback' => 'absint' ) );
-		register_setting( 'bcasw_general', 'bcasw_enable_popup',      array( 'sanitize_callback' => 'absint' ) );
-		register_setting( 'bcasw_general', 'bcasw_enable_inline',     array( 'sanitize_callback' => 'absint' ) );
-		register_setting( 'bcasw_general', 'bcasw_enable_copy',       array( 'sanitize_callback' => 'absint' ) );
-		register_setting( 'bcasw_general', 'bcasw_enable_email_sync', array( 'sanitize_callback' => 'absint' ) );
+		register_setting('bcasw_general', 'bcasw_enabled',           array('sanitize_callback' => 'absint'));
+		register_setting('bcasw_general', 'bcasw_site_name',         array('sanitize_callback' => 'sanitize_text_field'));
+		register_setting('bcasw_general', 'bcasw_bacs_only',         array('sanitize_callback' => 'absint'));
+		register_setting('bcasw_general', 'bcasw_enable_popup',      array('sanitize_callback' => 'absint'));
+		register_setting('bcasw_general', 'bcasw_enable_inline',     array('sanitize_callback' => 'absint'));
+		register_setting('bcasw_general', 'bcasw_enable_copy',       array('sanitize_callback' => 'absint'));
+		register_setting('bcasw_general', 'bcasw_enable_email_sync', array('sanitize_callback' => 'absint'));
 
 		// ── WhatsApp ─────────────────────────────────────────────────────────
 
-		register_setting( 'bcasw_whatsapp', 'bcasw_wa_customer_number', array( 'sanitize_callback' => array( __CLASS__, 'sanitize_phone' ) ) );
-		register_setting( 'bcasw_whatsapp', 'bcasw_wa_admin_number',    array( 'sanitize_callback' => array( __CLASS__, 'sanitize_phone' ) ) );
-		register_setting( 'bcasw_whatsapp', 'bcasw_wa_customer_tpl',    array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
-		register_setting( 'bcasw_whatsapp', 'bcasw_wa_admin_tpl',       array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
+		register_setting('bcasw_whatsapp', 'bcasw_wa_customer_number', array('sanitize_callback' => array(__CLASS__, 'sanitize_phone')));
+		register_setting('bcasw_whatsapp', 'bcasw_wa_admin_number',    array('sanitize_callback' => array(__CLASS__, 'sanitize_phone')));
+		register_setting('bcasw_whatsapp', 'bcasw_wa_customer_tpl',    array('sanitize_callback' => 'sanitize_textarea_field'));
+		register_setting('bcasw_whatsapp', 'bcasw_wa_admin_tpl',       array('sanitize_callback' => 'sanitize_textarea_field'));
 
 		// ── Popup ─────────────────────────────────────────────────────────────
 
-		register_setting( 'bcasw_popup', 'bcasw_popup_title',     array( 'sanitize_callback' => 'sanitize_text_field' ) );
-		register_setting( 'bcasw_popup', 'bcasw_popup_body',      array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
-		register_setting( 'bcasw_popup', 'bcasw_popup_btn_label', array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		register_setting('bcasw_popup', 'bcasw_popup_title',     array('sanitize_callback' => 'sanitize_text_field'));
+		register_setting('bcasw_popup', 'bcasw_popup_body',      array('sanitize_callback' => 'sanitize_textarea_field'));
+		register_setting('bcasw_popup', 'bcasw_popup_btn_label', array('sanitize_callback' => 'sanitize_text_field'));
 
 		// ── Instructions ──────────────────────────────────────────────────────
 
-		register_setting( 'bcasw_instructions', 'bcasw_checkout_desc',   array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
-		register_setting( 'bcasw_instructions', 'bcasw_instr_template',  array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
+		register_setting('bcasw_instructions', 'bcasw_checkout_desc',   array('sanitize_callback' => 'sanitize_textarea_field'));
+		register_setting('bcasw_instructions', 'bcasw_instr_template',  array('sanitize_callback' => 'sanitize_textarea_field'));
 
 		// Note: 'bcasw_banks' is handled separately by BCASW_Bank_Accounts.
 	}
@@ -108,9 +114,10 @@ class BCASW_Settings {
 	/**
 	 * Strip everything except digits and leading +.
 	 */
-	public static function sanitize_phone( string $number ): string {
-		$stripped = preg_replace( '/[^0-9+]/', '', $number );
+	public static function sanitize_phone(string $number): string
+	{
+		$stripped = preg_replace('/[^0-9+]/', '', $number);
 		// Collapse any internal + signs.
-		return preg_replace( '/(?<!^)\+/', '', $stripped );
+		return preg_replace('/(?<!^)\+/', '', $stripped);
 	}
 }

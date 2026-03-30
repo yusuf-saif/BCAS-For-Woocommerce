@@ -24,10 +24,20 @@ class BCASW_Order_Status {
 		add_filter( 'woocommerce_valid_order_statuses_for_payment', array( $this, 'allow_payment_from_awaiting' ) );
 		add_filter( 'wc_order_statuses',                            array( $this, 'add_to_order_statuses' ) );
 
-		// Bulk actions and admin column colour.
+		// Bulk actions — legacy screen.
 		add_filter( 'bulk_actions-edit-shop_order',                  array( $this, 'add_bulk_action' ) );
 		add_filter( 'handle_bulk_actions-edit-shop_order',           array( $this, 'handle_bulk_action' ), 10, 3 );
+
+		// Bulk actions — HPOS screen.
+		if ( function_exists( 'wc_get_page_screen_id' ) ) {
+			$hpos_screen = wc_get_page_screen_id( 'shop-order' );
+			add_filter( 'bulk_actions-' . $hpos_screen,              array( $this, 'add_bulk_action' ) );
+			add_filter( 'handle_bulk_actions-' . $hpos_screen,       array( $this, 'handle_bulk_action' ), 10, 3 );
+		}
+
+		// Status column colour and admin CSS.
 		add_filter( 'woocommerce_admin_order_statuses_default_columns', array( $this, 'add_status_column_colour' ) );
+		add_action( 'admin_head',                                   array( __CLASS__, 'admin_status_css' ) );
 	}
 
 	// ─── Registration ─────────────────────────────────────────────────────────
