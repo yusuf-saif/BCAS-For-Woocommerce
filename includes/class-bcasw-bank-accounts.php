@@ -174,13 +174,20 @@ class BCASW_Bank_Accounts {
 	}
 
 	/**
-	 * Sync the default bank account into WooCommerce's woocommerce_bacs_accounts option.
-	 * This keeps the native WC BACS settings page and emails consistent.
+	 * Sync the DEFAULT bank account into WooCommerce's woocommerce_bacs_accounts option.
 	 *
-	 * Only syncs if the default account passes validation. Invalid or placeholder
+	 * WooCommerce BACS is a COMPATIBILITY MIRROR only.
+	 * The plugin may manage multiple bank accounts; only the default one is ever
+	 * written to WooCommerce native BACS settings. Additional accounts are managed
+	 * exclusively by this plugin and are never exposed to WooCommerce directly.
+	 *
+	 * This keeps the native WC BACS settings page and order emails consistent with
+	 * the default bank without requiring the admin to maintain both places manually.
+	 *
+	 * Sync is skipped if the default account fails validation — invalid or placeholder
 	 * data is never written to WooCommerce native BACS settings.
 	 *
-	 * @param array $accounts Sanitised accounts array.
+	 * @param array $accounts Sanitised accounts array (full list, not just default).
 	 */
 	private static function sync_to_woocommerce( array $accounts ): void {
 		$default = null;
@@ -204,6 +211,8 @@ class BCASW_Bank_Accounts {
 			return;
 		}
 
+		// Mirror the default account only. WC BACS accepts a flat array of account rows;
+		// we always write exactly one entry (the default). Other accounts exist only here.
 		$wc_account = array(
 			array(
 				'account_name'   => $default['account_name']   ?? '',
@@ -215,8 +224,9 @@ class BCASW_Bank_Accounts {
 			),
 		);
 		update_option( 'woocommerce_bacs_accounts', $wc_account );
-		self::debug_log( 'Bank sync completed: default account synced to WC BACS.' );
+		self::debug_log( 'Bank sync completed: default account mirrored to WC BACS.' );
 	}
+
 
 	/**
 	 * Log a debug message when WP_DEBUG is enabled.

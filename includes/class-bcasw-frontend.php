@@ -125,17 +125,15 @@ class BCASW_Frontend {
 	/**
 	 * Check if a phone number is valid for WhatsApp.
 	 *
-	 * Strips all non-digit characters and enforces a minimum length of 10 digits.
-	 * This avoids accidentally building a wa.me/ URL from partial or test numbers
-	 * like "123" which would produce a broken or misdirected link.
+	 * Delegates to the shared BCASW_Settings::is_valid_wa_number() check
+	 * which requires at least 10 digits. Kept as a private wrapper here
+	 * so call-sites inside this class remain unchanged.
 	 *
 	 * @param string $number Raw phone number (may include +, spaces, dashes).
 	 * @return bool
 	 */
 	private static function has_valid_wa_number( string $number ): bool {
-		$digits = preg_replace( '/[^0-9]/', '', $number );
-		// Minimum 10 digits — shorter values are incomplete or test data.
-		return strlen( $digits ) >= 10;
+		return BCASW_Settings::is_valid_wa_number( $number );
 	}
 
 	// ─── Inline block ─────────────────────────────────────────────────────────
@@ -172,8 +170,8 @@ class BCASW_Frontend {
 		?>
 		<div class="bcasw-box" id="bcasw-inline-block">
 
-			<h2 class="bcasw-box__title"><?php esc_html_e( 'Bank Transfer Details', 'bcas-to-whatsapp' ); ?></h2>
-			<p class="bcasw-box__intro"><?php esc_html_e( 'Your order is awaiting payment confirmation. Transfer the exact amount below and send your receipt on WhatsApp.', 'bcas-to-whatsapp' ); ?></p>
+			<h2 class="bcasw-box__title"><?php esc_html_e( 'Complete Your Bank Transfer', 'bcas-to-whatsapp' ); ?></h2>
+			<p class="bcasw-box__intro"><?php esc_html_e( 'Transfer the exact amount shown below. Use your order number as the payment reference, then tap the WhatsApp button to send your receipt.', 'bcas-to-whatsapp' ); ?></p>
 
 			<div class="bcasw-details-grid" id="bcasw-details-grid"
 				data-order-id="<?php echo esc_attr( $order->get_id() ); ?>"
@@ -289,7 +287,8 @@ class BCASW_Frontend {
 		$order_number = $order->get_order_number();
 		$order_total  = wp_strip_all_tags( wc_price( (float) $order->get_total(), array( 'currency' => $order->get_currency() ) ) );
 		?>
-		<div class="bcasw-overlay" id="bcasw-overlay" role="dialog" aria-modal="true" aria-labelledby="bcasw-popup-title">
+		<div class="bcasw-overlay" id="bcasw-overlay" role="dialog" aria-modal="true" aria-labelledby="bcasw-popup-title"
+			data-popup-delay="5000">
 			<div class="bcasw-popup">
 
 				<button type="button" class="bcasw-popup__close" id="bcasw-closePopup" aria-label="<?php esc_attr_e( 'Close', 'bcas-to-whatsapp' ); ?>">

@@ -86,9 +86,13 @@ class BCASW_Admin_Page {
 		switch ( $tab ) {
 			case 'general':
 				$this->save_general();
+				// Auto-enable WC BACS if plugin setup is now complete.
+				BCASW_Plugin::maybe_auto_enable_bacs();
 				break;
 			case 'whatsapp':
 				$this->save_whatsapp();
+				// Adding the store WhatsApp number may complete setup — check and auto-enable.
+				BCASW_Plugin::maybe_auto_enable_bacs();
 				break;
 			case 'popup':
 				$this->save_popup();
@@ -98,6 +102,8 @@ class BCASW_Admin_Page {
 				break;
 			case 'banks':
 				$this->save_banks();
+				// Adding valid bank data may complete setup — check and auto-enable.
+				BCASW_Plugin::maybe_auto_enable_bacs();
 				break;
 		}
 

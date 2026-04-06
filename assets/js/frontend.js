@@ -56,8 +56,23 @@
 
 	var overlay = document.getElementById('bcasw-overlay');
 
+	function openPopup() {
+		if (overlay) {
+			overlay.style.display = 'flex';
+		}
+	}
+
 	function closePopup() {
 		if (overlay) overlay.style.display = 'none';
+	}
+
+	// Show popup after the configured delay (data-popup-delay attribute, in ms).
+	// Default: 5 seconds. The inline bank block is always the primary experience;
+	// the popup is a secondary reminder that appears after the customer has had
+	// time to read the transfer details.
+	if (overlay) {
+		var delay = parseInt(overlay.getAttribute('data-popup-delay') || '5000', 10);
+		setTimeout(openPopup, delay);
 	}
 
 	['bcasw-closePopup', 'bcasw-closePopup2'].forEach(function (id) {

@@ -129,8 +129,11 @@ $all_placeholders = array(
 
 			<div class="bcasw-card">
 				<h2 class="bcasw-card__title"><?php esc_html_e( 'Bank Accounts', 'bcas-to-whatsapp' ); ?></h2>
-				<p style="color:#6b7280;font-size:.9rem;margin-bottom:20px;">
+				<p style="color:#6b7280;font-size:.9rem;margin-bottom:12px;">
 					<?php esc_html_e( 'Add one or more bank accounts. If multiple accounts exist, customers can choose which one to transfer to. Mark one as default.', 'bcas-to-whatsapp' ); ?>
+				</p>
+				<p style="color:#374151;font-size:.85rem;margin:0 0 20px;padding:10px 14px;background:#eff6ff;border-left:3px solid #3b82f6;border-radius:4px;">
+					<?php esc_html_e( 'Only the default bank account is mirrored in WooCommerce Direct Bank Transfer settings. Additional bank accounts are managed exclusively by this plugin and are not exposed to WooCommerce directly.', 'bcas-to-whatsapp' ); ?>
 				</p>
 
 				<?php
@@ -170,24 +173,27 @@ $all_placeholders = array(
 
 			<div class="bcasw-card">
 				<h2 class="bcasw-card__title"><?php esc_html_e( 'WhatsApp Numbers', 'bcas-to-whatsapp' ); ?></h2>
+			<p style="color:#6b7280;font-size:.88rem;margin-bottom:20px;line-height:1.6;">
+				<?php esc_html_e( 'Three distinct WhatsApp roles exist in this plugin: (1) Store WhatsApp Number — customers send receipts here. (2) Internal/Admin Number — fallback for admin use. (3) Customer billing phone — used by admin when messaging a customer from an order.', 'bcas-to-whatsapp' ); ?>
+			</p>
 
 				<div class="bcasw-field">
-					<label for="bcasw_wa_customer_number"><?php esc_html_e( 'Customer WhatsApp Number', 'bcas-to-whatsapp' ); ?></label>
+					<label for="bcasw_wa_customer_number"><?php esc_html_e( 'Store WhatsApp Number', 'bcas-to-whatsapp' ); ?></label>
 					<div>
 						<input type="tel" id="bcasw_wa_customer_number" name="bcasw_wa_customer_number"
 							value="<?php echo esc_attr( BCASW_Settings::get( 'bcasw_wa_customer_number' ) ); ?>"
 							placeholder="+2347032896514">
-						<p class="description"><?php esc_html_e( 'The number customers send receipts to. Include country code, no spaces.', 'bcas-to-whatsapp' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Customers send their payment receipt to this number. Include country code, no spaces. Example: +2347032896514', 'bcas-to-whatsapp' ); ?></p>
 					</div>
 				</div>
 
 				<div class="bcasw-field">
-					<label for="bcasw_wa_admin_number"><?php esc_html_e( 'Internal WhatsApp Number', 'bcas-to-whatsapp' ); ?></label>
+					<label for="bcasw_wa_admin_number"><?php esc_html_e( 'Internal/Admin WhatsApp Number', 'bcas-to-whatsapp' ); ?></label>
 					<div>
 						<input type="tel" id="bcasw_wa_admin_number" name="bcasw_wa_admin_number"
 							value="<?php echo esc_attr( BCASW_Settings::get( 'bcasw_wa_admin_number' ) ); ?>"
 							placeholder="+2347032896514">
-						<p class="description"><?php esc_html_e( 'Fallback number if a customer has no billing phone. The admin "Message Customer" button uses the customer\'s own billing phone first.', 'bcas-to-whatsapp' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Optional. Used as a fallback when a customer has no billing phone. The &ldquo;Message Customer on WhatsApp&rdquo; button in orders always uses the customer&rsquo;s own billing phone first.', 'bcas-to-whatsapp' ); ?></p>
 					</div>
 				</div>
 			</div>
@@ -196,10 +202,10 @@ $all_placeholders = array(
 				<h2 class="bcasw-card__title"><?php esc_html_e( 'Message Templates', 'bcas-to-whatsapp' ); ?></h2>
 
 				<div class="bcasw-field">
-					<label for="bcasw_wa_customer_tpl"><?php esc_html_e( 'Customer Message Template', 'bcas-to-whatsapp' ); ?></label>
+					<label for="bcasw_wa_customer_tpl"><?php esc_html_e( 'Customer Receipt Message Template', 'bcas-to-whatsapp' ); ?></label>
 					<div>
 						<textarea id="bcasw_wa_customer_tpl" name="bcasw_wa_customer_tpl"><?php echo esc_textarea( BCASW_Settings::get( 'bcasw_wa_customer_tpl' ) ); ?></textarea>
-						<p class="description"><?php esc_html_e( 'Pre-filled WhatsApp message when customer clicks "Send Receipt".', 'bcas-to-whatsapp' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Pre-filled WhatsApp message sent by the customer when they tap &ldquo;Send Receipt on WhatsApp&rdquo;. Sent to the Store WhatsApp Number above.', 'bcas-to-whatsapp' ); ?></p>
 						<div class="bcasw-vars">
 							<?php foreach ( $all_placeholders as $ph ) : ?>
 								<span class="bcasw-var-pill" title="<?php esc_attr_e( 'Click to insert', 'bcas-to-whatsapp' ); ?>"><?php echo esc_html( $ph ); ?></span>
@@ -209,10 +215,10 @@ $all_placeholders = array(
 				</div>
 
 				<div class="bcasw-field">
-					<label for="bcasw_wa_admin_tpl"><?php esc_html_e( 'Admin Message Template', 'bcas-to-whatsapp' ); ?></label>
+					<label for="bcasw_wa_admin_tpl"><?php esc_html_e( 'Message Customer Template', 'bcas-to-whatsapp' ); ?></label>
 					<div>
 						<textarea id="bcasw_wa_admin_tpl" name="bcasw_wa_admin_tpl"><?php echo esc_textarea( BCASW_Settings::get( 'bcasw_wa_admin_tpl' ) ); ?></textarea>
-						<p class="description"><?php esc_html_e( 'Pre-filled message when admin contacts a customer from the order page.', 'bcas-to-whatsapp' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Pre-filled message when admin taps &ldquo;Message Customer on WhatsApp&rdquo; from an order page. Sent to the customer&rsquo;s billing phone.', 'bcas-to-whatsapp' ); ?></p>
 						<div class="bcasw-vars">
 							<?php foreach ( array( '{order_number}', '{customer_name}', '{order_total}', '{billing_phone}', '{billing_email}' ) as $ph ) : ?>
 								<span class="bcasw-var-pill"><?php echo esc_html( $ph ); ?></span>
@@ -232,6 +238,9 @@ $all_placeholders = array(
 
 			<div class="bcasw-card">
 				<h2 class="bcasw-card__title"><?php esc_html_e( 'Popup Content', 'bcas-to-whatsapp' ); ?></h2>
+				<p style="color:#6b7280;font-size:.85rem;margin-bottom:18px;line-height:1.6;">
+					<?php esc_html_e( 'The popup is a secondary reminder. Payment instructions are always shown immediately on the order-received page. The popup appears a few seconds later as a follow-up nudge.', 'bcas-to-whatsapp' ); ?>
+				</p>
 
 				<div class="bcasw-field">
 					<label for="bcasw_popup_title"><?php esc_html_e( 'Popup Title', 'bcas-to-whatsapp' ); ?></label>

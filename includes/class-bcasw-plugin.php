@@ -3,9 +3,14 @@
 /**
  * Main plugin orchestrator.
  * Instantiates all sub-classes and registers their hooks.
- * Also houses the v1 → v2 migration routine.
+ * Also houses the v1 → v2 migration routine and the v2.2 readiness helpers.
  *
  * @package BCAS_To_WhatsApp
+ *
+ * Data integrity contract (v2.2):
+ *   - Plugin settings  = source of truth for active configuration.
+ *   - Order snapshot   = immutable historical truth per order.
+ *   - WooCommerce BACS = compatibility mirror of the DEFAULT bank only.
  */
 
 if (! defined('ABSPATH')) {
@@ -94,16 +99,75 @@ class BCASW_Plugin
 
 	/**
 	 * Show admin notices.
-	 * (a) Warning if no bank accounts are configured.
-	 * (b) One-time post-migration prompt to review settings.
+	 *
+	 * (a) BACS auto-enabled confirmation — one-time, transient-driven.
+	 * (b) Setup incomplete summary — plugin enabled but is_ready() = false.
+	 * (c) No bank accounts configured — prompt to add first bank.
+	 * (d) Default bank account incomplete — sync was skipped, explain why.
+	 * (e) Post-migration prompt — one-time after v1 → v2 upgrade.
 	 */
 	public function show_admin_notices(): void
 	{
-		if (! current_user_can('manage_woocommerce')) {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return;
 		}
 
-		// Notice (a): no accounts saved at all \u2014 prompt admin to create their first bank.
+		// Notice (a): WooCommerce BACS was just auto-enabled by this plugin.
+		// Consumed from a short-lived transient set by maybe_auto_enable_bacs().
+		if ( get_transient( 'bcasw_bacs_auto_enabled' ) ) {
+			delete_transient( 'bcasw_bacs_auto_enabled' );
+			echo '<div class="notice notice-success is-dismissible"><p>';
+			echo wp_kses(
+				__( '<strong>BCAS to WhatsApp:</strong> WooCommerce Direct Bank Transfer has been enabled automatically — your setup is complete.', 'bcas-to-whatsapp' ),
+				array( 'strong' => array() )
+			);
+			echo '</p></div>';
+		}
+
+		// Notice (b): Plugin is on but not ready — show a concise summary of what is missing.
+		// Only shown on BCAS settings pages and WooCommerce pages to avoid admin noise.
+		// Suppressed when notice (c) is already showing (no bank accounts at all).
+		if (
+			BCASW_Settings::get( 'bcasw_enabled' ) &&
+			! self::is_ready() &&
+			BCASW_Bank_Accounts::is_configured()
+		) {
+			$screen = get_current_screen();
+			$show   = $screen && (
+				strpos( $screen->id, 'bcasw' ) !== false ||
+				strpos( $screen->id, 'woocommerce' ) !== false
+			);
+
+			if ( $show ) {
+				$missing = array();
+
+				// bcasw_wa_customer_number = the number customers send payment receipts to.
+				if ( ! BCASW_Settings::is_valid_wa_number( BCASW_Settings::get( 'bcasw_wa_customer_number' ) ) ) {
+					$wa_url    = admin_url( 'admin.php?page=bcasw-settings&tab=whatsapp' );
+					/* translators: %s: WhatsApp settings URL */
+					$missing[] = sprintf(
+						__( '<a href="%s">Store WhatsApp Number</a> is missing or invalid', 'bcas-to-whatsapp' ),
+						esc_url( $wa_url )
+					);
+				}
+
+				if ( ! class_exists( 'WC_Gateway_BACS' ) ) {
+					$missing[] = __( 'WooCommerce Direct Bank Transfer gateway could not be found', 'bcas-to-whatsapp' );
+				}
+
+				if ( ! empty( $missing ) ) {
+					echo '<div class="notice notice-warning is-dismissible"><p>';
+					echo wp_kses(
+						'<strong>' . __( 'BCAS to WhatsApp — setup incomplete:', 'bcas-to-whatsapp' ) . '</strong> '
+						. implode( '; ', $missing ) . '.',
+						array( 'strong' => array(), 'a' => array( 'href' => array() ) )
+					);
+					echo '</p></div>';
+				}
+			}
+		}
+
+		// Notice (c): no accounts saved at all — prompt admin to create their first bank.
 		if ( BCASW_Bank_Accounts::count() === 0 ) {
 			$url = admin_url( 'admin.php?page=bcasw-settings&tab=banks' );
 			echo '<div class="notice notice-warning is-dismissible"><p>';
@@ -118,10 +182,10 @@ class BCASW_Plugin
 			echo '</p></div>';
 		}
 
-		// Notice (b): accounts exist but the default is incomplete, so WC BACS sync was skipped.
-		// This is distinct from (a) \u2014 the merchant has started adding a bank but hasn't
-		// finished filling it in. Explain the consequence (no sync) so they understand why
-		// the WooCommerce Direct Bank Transfer settings page did not update.
+		// Notice (d): accounts exist but the default is incomplete — WC BACS sync was skipped.
+		// The merchant has started adding a bank but has not finished filling it in.
+		// Explain the consequence (no sync) so they understand why the BACS settings page
+		// did not update.
 		if ( BCASW_Bank_Accounts::count() > 0 ) {
 			$default = BCASW_Bank_Accounts::get_default();
 			if ( $default && ! BCASW_Bank_Accounts::is_account_valid( $default ) ) {
@@ -139,24 +203,24 @@ class BCASW_Plugin
 			}
 		}
 
-		// One-time migration notice.
-		if (get_option('bcasw_migrated_notice')) {
-			delete_option('bcasw_migrated_notice');
-			$url = admin_url('admin.php?page=bcasw-settings');
+		// Notice (e): one-time post-migration prompt (v1 → v2 upgrade).
+		if ( get_option( 'bcasw_migrated_notice' ) ) {
+			delete_option( 'bcasw_migrated_notice' );
+			$url = admin_url( 'admin.php?page=bcasw-settings' );
 			echo '<div class="notice notice-info is-dismissible"><p>';
 			echo wp_kses(
 				sprintf(
 					/* translators: %s: settings URL */
-					__('<strong>BCAS to WhatsApp v2:</strong> Plugin upgraded. Please <a href="%s">review your settings</a>.', 'bcas-to-whatsapp'),
-					esc_url($url)
+					__( '<strong>BCAS to WhatsApp v2:</strong> Plugin upgraded. Please <a href="%s">review your settings</a>.', 'bcas-to-whatsapp' ),
+					esc_url( $url )
 				),
-				array('strong' => array(), 'a' => array('href' => array()))
+				array( 'strong' => array(), 'a' => array( 'href' => array() ) )
 			);
 			echo '</p></div>';
 		}
 	}
 
-	// ─── Plugin action links ──────────────────────────────────────────────────
+		// ─── Plugin action links ──────────────────────────────────────────────────
 
 	public function add_action_links(array $links): array
 	{
@@ -165,6 +229,90 @@ class BCASW_Plugin
 			. '</a>';
 		array_unshift($links, $settings_link);
 		return $links;
+	}
+
+	// ─── Readiness check ──────────────────────────────────────────────────────
+
+	/**
+	 * Returns true only when the plugin is fully configured and ready to operate.
+	 *
+	 * All four conditions must be met:
+	 *   1. Plugin enabled toggle is on.
+	 *   2. At least one valid bank account exists.
+	 *   3. Store WhatsApp number is valid (≥10 digits).
+	 *   4. WooCommerce BACS gateway class is available.
+	 *
+	 * Use this for admin notices and setup guidance.
+	 * Do NOT use it to block normal admin editing or order processing.
+	 *
+	 * @return bool
+	 */
+	public static function is_ready(): bool
+	{
+		// Condition 1: plugin toggle.
+		if ( ! BCASW_Settings::get( 'bcasw_enabled' ) ) {
+			return false;
+		}
+
+		// Condition 2: at least one valid bank account.
+		if ( ! BCASW_Bank_Accounts::is_configured() ) {
+			return false;
+		}
+
+		// Condition 3: store WhatsApp number must be valid.
+		// bcasw_wa_customer_number is the number customers send receipts to.
+		$store_wa = BCASW_Settings::get( 'bcasw_wa_customer_number' );
+		if ( ! BCASW_Settings::is_valid_wa_number( $store_wa ) ) {
+			return false;
+		}
+
+		// Condition 4: WooCommerce BACS gateway must exist.
+		if ( ! class_exists( 'WC_Gateway_BACS' ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	// ─── Auto-enable WooCommerce BACS ─────────────────────────────────────────
+
+	/**
+	 * If the plugin is now fully configured (is_ready() = true) and WooCommerce
+	 * Direct Bank Transfer (BACS) is currently disabled, enable it automatically.
+	 *
+	 * This preserves WC compatibility without requiring the admin to manually
+	 * visit WooCommerce → Settings → Payments and enable BACS.
+	 *
+	 * Sets a transient so show_admin_notices() can display a one-time confirmation.
+	 *
+	 * Call this after saving plugin settings (general tab or banks tab) so that
+	 * completing setup automatically activates the underlying gateway.
+	 *
+	 * Does NOT touch any other gateway settings.
+	 */
+	public static function maybe_auto_enable_bacs(): void
+	{
+		// Only run when setup is complete.
+		if ( ! self::is_ready() ) {
+			return;
+		}
+
+		// Read the current WC gateway settings.
+		$gateway_settings = get_option( 'woocommerce_bacs_settings', array() );
+
+		// Already enabled — nothing to do.
+		if ( isset( $gateway_settings['enabled'] ) && 'yes' === $gateway_settings['enabled'] ) {
+			return;
+		}
+
+		// Enable BACS without touching any other gateway setting.
+		$gateway_settings['enabled'] = 'yes';
+		update_option( 'woocommerce_bacs_settings', $gateway_settings );
+
+		// Flag for a one-time admin notice on next page load.
+		set_transient( 'bcasw_bacs_auto_enabled', '1', 30 );
+
+		self::log( 'WooCommerce Direct Bank Transfer auto-enabled by plugin (setup is complete).' );
 	}
 
 	// ─── v1 → v2 Migration ────────────────────────────────────────────────────

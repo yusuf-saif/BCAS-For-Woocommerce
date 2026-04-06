@@ -117,12 +117,13 @@ class BCASW_Order_Actions {
 		$admin_tpl     = BCASW_Settings::get( 'bcasw_wa_admin_tpl' );
 		$admin_number  = BCASW_Settings::get( 'bcasw_wa_admin_number' );
 
-		// Use the customer's billing phone to contact them directly.
-		// Fall back to admin number if billing phone is missing.
+		// The admin "Message Customer on WhatsApp" button uses the customer's billing phone
+		// as the target number. The Internal/Admin WhatsApp Number setting is a fallback
+		// only used when the customer has no billing phone on record.
 		$contact_number = $order->get_billing_phone() ?: $admin_number;
 
 		if ( empty( $contact_number ) ) {
-			echo '<p class="description">' . esc_html__( 'Set a Store WhatsApp number in BCAS to WhatsApp settings, or ensure the customer has a billing phone.', 'bcas-to-whatsapp' ) . '</p>';
+			echo '<p class="description">' . esc_html__( 'No contact number available. Ensure the customer has a billing phone, or set a fallback Internal/Admin WhatsApp Number in BCAS to WhatsApp settings.', 'bcas-to-whatsapp' ) . '</p>';
 			return;
 		}
 
@@ -132,12 +133,13 @@ class BCASW_Order_Actions {
 
 		echo '<p>'
 			. '<a href="' . esc_url( $wa_url ) . '" target="_blank" rel="noopener" class="button button-secondary" style="width:100%;text-align:center;">'
-			. esc_html__( '💬 Contact Customer on WhatsApp', 'bcas-to-whatsapp' )
+			// translators: This button opens a WhatsApp chat with the customer's billing phone.
+			. esc_html__( '💬 Message Customer on WhatsApp', 'bcas-to-whatsapp' )
 			. '</a>'
 			. '</p>';
 
 		echo '<p style="font-size:11px;color:#666;">'
-			. esc_html__( 'Opens WhatsApp with a pre-filled message using order details.', 'bcas-to-whatsapp' )
+			. esc_html__( 'Opens WhatsApp with a pre-filled message to the customer\'s billing phone number.', 'bcas-to-whatsapp' )
 			. '</p>';
 	}
 

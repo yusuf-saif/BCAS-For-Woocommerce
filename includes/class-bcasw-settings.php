@@ -120,4 +120,20 @@ class BCASW_Settings
 		// Collapse any internal + signs.
 		return preg_replace('/(?<!^)\+/', '', $stripped);
 	}
+
+	/**
+	 * Check whether a phone number is valid for WhatsApp use.
+	 *
+	 * Strips all non-digit characters and requires at least 10 digits.
+	 * Shorter values are treated as incomplete or test data and rejected.
+	 *
+	 * This is the canonical validity check used by is_ready() and BCASW_Frontend.
+	 *
+	 * @param string $number Raw phone number (may contain +, spaces, dashes).
+	 * @return bool
+	 */
+	public static function is_valid_wa_number( string $number ): bool {
+		$digits = preg_replace( '/[^0-9]/', '', $number );
+		return strlen( $digits ) >= 10;
+	}
 }

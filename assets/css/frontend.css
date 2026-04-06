@@ -292,7 +292,7 @@
 	position: fixed;
 	inset: 0;
 	background: rgba(0, 0, 0, 0.68);
-	display: flex;
+	display: none;               /* hidden by default; JS shows after popup delay */
 	align-items: center;
 	justify-content: center;
 	z-index: 999999;
