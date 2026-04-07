@@ -84,7 +84,14 @@ class BCASW_Template_Renderer {
 	}
 
 	/**
-	 * Build a WhatsApp URL (wa.me) from a phone number and rendered message.
+	 * Build a WhatsApp URL from a phone number and rendered message.
+	 *
+	 * Uses web.whatsapp.com/send directly instead of wa.me, because wa.me
+	 * redirects through api.whatsapp.com which can be blocked by VPNs,
+	 * firewalls, or browser security policies (ERR_BLOCKED_BY_RESPONSE).
+	 *
+	 * web.whatsapp.com/send opens WhatsApp Web directly without that redirect.
+	 * On mobile, browsers follow the WhatsApp deep-link the same way.
 	 *
 	 * @param string $raw_number Phone number (may include spaces, +, dashes).
 	 * @param string $message    Rendered message text.
@@ -92,6 +99,9 @@ class BCASW_Template_Renderer {
 	 */
 	public static function whatsapp_url( string $raw_number, string $message ): string {
 		$number = preg_replace( '/[^0-9]/', '', $raw_number );
-		return 'https://wa.me/' . rawurlencode( $number ) . '?text=' . rawurlencode( $message );
+		if ( empty( $number ) ) {
+			return '';
+		}
+		return 'https://web.whatsapp.com/send?phone=' . rawurlencode( $number ) . '&text=' . rawurlencode( $message );
 	}
 }
